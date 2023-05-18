@@ -28,7 +28,20 @@ async function writeTalker(newTalker) {
   }
 }
 
+async function updateTalker(id, updatedTalker) {
+  const oldFile = await readTalker();
+  const newTalker = { id, ...updatedTalker };
+  const findTalker = oldFile.find((e) => e.id === Number(id));
+  const newFile = JSON.stringify(oldFile.map((e) => (e === findTalker ? newTalker : e)));
+  try {
+    await fs.writeFileSync(path.resolve(__dirname, talkerFile), newFile);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 module.exports = {
+  updateTalker,
   readTalker,
   writeTalker,
 };

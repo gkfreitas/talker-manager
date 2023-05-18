@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const { readTalker, writeTalker } = require('./utils/fsUtils');
+const { readTalker, writeTalker, updateTalker } = require('./utils/fsUtils');
 
 const app = express();
 app.use(express.json());
@@ -63,7 +63,6 @@ app.post('/login', validateEmail, validatePassword, async (req, res) => {
 
 const validateToken = (req, res, next) => {
   const token = req.header('Authorization');
-  console.log(token);
   if (!token) return res.status(401).json({ message: 'Token não encontrado' });
   if (token.length !== 16 || typeof (token) !== 'string') {
     return res.status(401).json({ message: 'Token inválido' });
@@ -112,7 +111,6 @@ const validateFormatTalk = (req, res, next) => {
   const dateFormatError = 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"';
   if (!watchedAt.match(regexDate)) return res.status(400).json({ message: dateFormatError });
   const validateRate = Number.isInteger(rate) && rate >= 1 && rate <= 5;
-  console.log(validateRate);
   const rateFormatError = 'O campo "rate" deve ser um número inteiro entre 1 e 5';
   if (!validateRate) return res.status(400).json({ message: rateFormatError });
   next();
@@ -124,4 +122,17 @@ validateFormatTalk, async (req, res) => {
   const newArq = await writeTalker(newTalker);
   const lastTalker = newArq[newArq.length - 1];
   return res.status(201).json(lastTalker);
+});
+
+// REQ 06
+
+app.put('/talker/:id', validateToken, validateName, validateAge, validateNullTalk, 
+validateFormatTalk, async (req, res) => {
+  const { id } = req.params;
+  const { body } = req;
+  await updateTalker(Number(id), body);
+  const talkers = await readTalker();
+  const message = 'Pessoa palestrante não encontrada';
+  if (!talkers.some((e) => e.id === Number(id))) return res.status(404).json({ message });
+  return res.status(200).json(talkers.find((e) => e.id === Number(id)));
 });
