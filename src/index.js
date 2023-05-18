@@ -35,12 +35,44 @@ const validateToken = (req, res, next) => {
   next();
 };
 
-app.get('/talker/search', validateToken, async (req, res) => {
+const validateFormatRate = (req, res, next) => {
+  const { rate } = req.query;
+  const rateNumber = Number(rate);
+  if (!rate) {
+    next();
+  } else {
+  const validateRate = Number.isInteger(rateNumber) && rateNumber >= 1 && rateNumber <= 5;
+  const rateFormatError = 'O campo "rate" deve ser um número inteiro entre 1 e 5';
+  if (!validateRate) return res.status(400).json({ message: rateFormatError });
+  next();
+  }
+};
+
+const validateFormatDate = (req, res, next) => {
+  const { date } = req.query;
+  if (!date) {
+    next();
+  } else {
+    const regexDate = /^(0?[1-9]|[12][0-9]|3[01])[/-](0?[1-9]|1[012])[/-]\d{4}$/;
+    const dateFormatError = 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"';
+    if (!date.match(regexDate)) return res.status(400).json({ message: dateFormatError });
+    next();
+  }
+};
+
+const filterNameAndRate = (talkers, q, rate) => talkers.filter((e) => 
+e.talk.rate === Number(rate) && (e.name).includes(q));
+
+const filterNameOrRate = (talkers, q, rate) => talkers.filter((e) => 
+e.talk.rate === Number(rate) || (e.name).includes(q));
+
+app.get('/talker/search', validateToken, validateFormatRate, 
+validateFormatDate, async (req, res) => {
   const talkers = await readTalker();
-  const { q } = req.query;
-  if (!q) return res.status(200).json(talkers);
-  const filteredTalkers = talkers.filter((e) => (e.name).includes(q));
-  return res.status(200).json(filteredTalkers);
+  const { q, rate } = req.query;
+  if (q && rate) return res.status(200).json(filterNameAndRate(talkers, q, rate));
+  if (q || rate) return res.status(200).json(filterNameOrRate(talkers, q, rate));
+  return res.status(200).json(talkers);
 });
 
 // REQ 02
