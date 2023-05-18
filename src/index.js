@@ -24,6 +24,25 @@ app.get('/talker', async (req, res) => {
   return res.status(200).json(talkers);
 });
 
+// REQ 08
+
+const validateToken = (req, res, next) => {
+  const token = req.header('Authorization');
+  if (!token) return res.status(401).json({ message: 'Token não encontrado' });
+  if (token.length !== 16 || typeof (token) !== 'string') {
+    return res.status(401).json({ message: 'Token inválido' });
+  }
+  next();
+};
+
+app.get('/talker/search', validateToken, async (req, res) => {
+  const talkers = await readTalker();
+  const { q } = req.query;
+  if (!q) return res.status(200).json(talkers);
+  const filteredTalkers = talkers.filter((e) => (e.name).includes(q));
+  return res.status(200).json(filteredTalkers);
+});
+
 // REQ 02
 
 app.get('/talker/:id', async (req, res) => {
@@ -60,15 +79,6 @@ app.post('/login', validateEmail, validatePassword, async (req, res) => {
 });
 
 // REQ 05
-
-const validateToken = (req, res, next) => {
-  const token = req.header('Authorization');
-  if (!token) return res.status(401).json({ message: 'Token não encontrado' });
-  if (token.length !== 16 || typeof (token) !== 'string') {
-    return res.status(401).json({ message: 'Token inválido' });
-  }
-  next();
-};
 
 const validateName = (req, res, next) => {
   const { name } = req.body;
