@@ -40,7 +40,20 @@ async function updateTalker(id, updatedTalker) {
   }
 }
 
+async function deleteTalker(id) {
+  const oldFile = await readTalker();
+  const findTalker = oldFile.find((e) => e.id === Number(id));
+  const newFile = JSON.stringify(oldFile.filter((e) => (e !== findTalker)));
+  console.log(newFile);
+  try {
+    await fs.writeFileSync(path.resolve(__dirname, talkerFile), newFile);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 module.exports = {
+  deleteTalker,
   updateTalker,
   readTalker,
   writeTalker,

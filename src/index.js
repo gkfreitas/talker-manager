@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const { readTalker, writeTalker, updateTalker } = require('./utils/fsUtils');
+const { readTalker, writeTalker, updateTalker, deleteTalker } = require('./utils/fsUtils');
 
 const app = express();
 app.use(express.json());
@@ -135,4 +135,10 @@ validateFormatTalk, async (req, res) => {
   const message = 'Pessoa palestrante não encontrada';
   if (!talkers.some((e) => e.id === Number(id))) return res.status(404).json({ message });
   return res.status(200).json(talkers.find((e) => e.id === Number(id)));
+});
+
+app.delete('/talker/:id', validateToken, async (req, res) => {
+  const { id } = req.params;
+  await deleteTalker(id);
+  return res.status(204).json();
 });
