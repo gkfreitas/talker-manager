@@ -53,25 +53,31 @@ const validateFormatDate = (req, res, next) => {
   if (!date) {
     next();
   } else {
-    const regexDate = /^(0?[1-9]|[12][0-9]|3[01])[/-](0?[1-9]|1[012])[/-]\d{4}$/;
-    const dateFormatError = 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"';
+    const regexDate = /^(0?[1-9]|[12][0-9]|3[01])[/](0?[1-9]|1[012])[/]\d{4}$/;
+    const dateFormatError = 'O parâmetro "date" deve ter o formato "dd/mm/aaaa"';
     if (!date.match(regexDate)) return res.status(400).json({ message: dateFormatError });
     next();
   }
 };
 
-const filterNameAndRate = (talkers, q, rate) => talkers.filter((e) => 
-e.talk.rate === Number(rate) && (e.name).includes(q));
-
-const filterNameOrRate = (talkers, q, rate) => talkers.filter((e) => 
-e.talk.rate === Number(rate) || (e.name).includes(q));
-
 app.get('/talker/search', validateToken, validateFormatRate, 
 validateFormatDate, async (req, res) => {
   const talkers = await readTalker();
-  const { q, rate } = req.query;
-  if (q && rate) return res.status(200).json(filterNameAndRate(talkers, q, rate));
-  if (q || rate) return res.status(200).json(filterNameOrRate(talkers, q, rate));
+  const { q, rate, date } = req.query;
+  const Q = q || '';
+  const R = +rate || '';
+  const D = date || '';
+  console.log(Q, R, D);
+  const results = talkers.filter((e) => {
+    console.log(e.name, (e.talk.rate).toString(), e.talk.watchedAt);
+    const verify = e.name.includes(Q) && ((e.talk.rate).toString()).includes(R) 
+    && e.talk.watchedAt.includes(D);
+    return verify;
+  });
+  if (Object.keys(req.query).length) {
+ return res.status(200)
+  .json(results); 
+}
   return res.status(200).json(talkers);
 });
 
