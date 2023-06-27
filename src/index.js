@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
-const { readTalker, writeTalker, updateTalker, deleteTalker, updateTalkerRate } = require('./utils/fsUtils');
+const { readTalker, writeTalker, updateTalker, deleteTalker, 
+  updateTalkerRate } = require('./utils/fsUtils');
 
 const app = express();
 app.use(express.json());
@@ -13,15 +14,31 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
-app.listen(PORT, () => {
-  console.log('Online');
+const connection = require('./db/connection');
+
+console.log('oi');
+app.listen(PORT, async () => {
+  console.log(`API TalkerManager está sendo executada na porta ${PORT}`);
+  const [result] = await connection.execute('SELECT 1');
+  if (result) {
+    console.log('MySQL connection OK');
+  }
 });
 
-// REQ 01
-
-app.get('/talker', async (req, res) => {
-  const talkers = await readTalker();
-  return res.status(200).json(talkers);
+app.get('/talker/db', async (req, res) => {
+  const [talkers] = await connection.execute('SELECT * FROM talkers');
+  const newTalkers = talkers.map((e) => {
+    const obj = {
+      ...e,
+      talk: { watchedAt: e.talk_watched_at, rate: e.talk_rate },
+    };
+    return obj;
+  });
+  newTalkers.forEach((e) => {
+    delete e.talk_rate;
+    delete e.talk_watched_at;
+  });
+  return res.status(200).json(newTalkers);
 });
 
 // REQ 08
