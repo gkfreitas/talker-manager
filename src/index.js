@@ -9,14 +9,12 @@ app.use(express.json());
 const HTTP_OK_STATUS = 200;
 const PORT = process.env.PORT || '3001';
 
-// não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
 const connection = require('./db/connection');
 
-console.log('oi');
 app.listen(PORT, async () => {
   console.log(`API TalkerManager está sendo executada na porta ${PORT}`);
   const [result] = await connection.execute('SELECT 1');
