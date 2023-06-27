@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const { readTalker, writeTalker, updateTalker, deleteTalker } = require('./utils/fsUtils');
+const { readTalker, writeTalker, updateTalker, deleteTalker, updateTalkerRate } = require('./utils/fsUtils');
 
 const app = express();
 app.use(express.json());
@@ -48,6 +48,17 @@ const validateFormatRate = (req, res, next) => {
   }
 };
 
+const validateRateBody = (req, res, next) => {
+  const { rate } = req.body;
+  if (rate === undefined) {
+    return res.status(400).json({ message: 'O campo "rate" é obrigatório' });
+  }
+  const validateRate = Number.isInteger(rate) && rate >= 1 && rate <= 5;
+  const rateFormatError = 'O campo "rate" deve ser um número inteiro entre 1 e 5';
+  if (!validateRate) return res.status(400).json({ message: rateFormatError });
+  next();
+};
+
 const validateFormatDate = (req, res, next) => {
   const { date } = req.query;
   if (!date) {
@@ -79,6 +90,17 @@ validateFormatDate, async (req, res) => {
   .json(results); 
 }
   return res.status(200).json(talkers);
+});
+
+app.patch('/talker/rate/:id', validateToken, validateRateBody, async (req, res) => {
+  const { id } = req.params;
+  const { rate } = req.body;
+  await updateTalkerRate(Number(id), rate);
+  const talkers = await readTalker();
+  console.log(talkers);
+  const message = '';
+  if (!talkers.some((e) => e.id === Number(id))) return res.status(404).json({ message });
+  return res.status(204).json(talkers);
 });
 
 // REQ 02

@@ -40,6 +40,21 @@ async function updateTalker(id, updatedTalker) {
   }
 }
 
+async function updateTalkerRate(id, rate) {
+  const oldFile = await readTalker();
+  const findTalker = oldFile.find((e) => e.id === Number(id));
+  console.log(findTalker);
+  findTalker.talk.rate = rate;
+  console.log(findTalker);
+  const mapTalker = oldFile.map((e) => (e === findTalker ? findTalker : e));
+  const newFile = JSON.stringify(mapTalker);
+  try {
+    await fs.writeFileSync(path.resolve(__dirname, talkerFile), newFile);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 async function deleteTalker(id) {
   const oldFile = await readTalker();
   const findTalker = oldFile.find((e) => e.id === Number(id));
@@ -57,4 +72,5 @@ module.exports = {
   updateTalker,
   readTalker,
   writeTalker,
+  updateTalkerRate,
 };
