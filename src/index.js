@@ -41,6 +41,13 @@ app.get('/talker/db', async (req, res) => {
   return res.status(200).json(newTalkers);
 });
 
+// REQ 01
+
+app.get('/talker', async (req, res) => {
+  const talkers = await readTalker();
+  return res.status(200).json(talkers);
+});
+
 // REQ 08
 
 const validateToken = (req, res, next) => {
